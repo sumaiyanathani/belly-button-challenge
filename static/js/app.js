@@ -91,7 +91,7 @@ d3.selectAll("onchange").on("change", optionChanged);
 
 function optionChanged() {
     let dropdownMenu = d3.select("#selDataset");
-    // Assign the value of the dropdown menu option to a letiable
+    // Assign the value of the dropdown menu option to a variable
     let dataset = dropdownMenu.property("value");
     // Initialize an empty array for the country's data
     
@@ -115,12 +115,40 @@ function optionChanged() {
                   }]
                 }];
                 updatePlotly(barplot_data);
+
+                let y_data_bubble = [];
+                
             }
                 //console.log(barplot_data)
         };
          };
 
 function updatePlotly(newdata) {
-    Plotly.restyle("bar", "x_data", [newdata])
-    Plotly.restyle("bar", "y_data", [newdata])
-}
+    for (let i = 0; i < ids.length; i++) {
+        let dropdownMenu = d3.select("#selDataset");
+        let dataset = dropdownMenu.property("value");
+        if (dataset == ids[i]) {
+            let y_data = [];
+            y_data = otu_ids[i].map(otu_id => {
+                return 'OTU ' + otu_id});
+            let new_plot = [{
+                x: sample_values[i],
+                y: y_data,
+        type: "bar",
+        orientation: "h",
+        text: otu_labels[i],
+        transforms: [{
+            type: 'sort',
+            target: 'y',
+            order: 'descending'
+          }]
+    }];
+    let layout = {
+        height: 600,
+        width: 800
+    };
+    Plotly.newPlot("bar", new_plot, layout);
+        }
+    }
+    };
+
