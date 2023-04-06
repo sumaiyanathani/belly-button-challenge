@@ -1,4 +1,3 @@
-
 // 
 const url = "https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json"
 
@@ -12,9 +11,9 @@ d3.json(url).then(data => {
     console.log(data);
     sample_data = data.samples;
     ids = data.names;
-    sample_values = sample_data.map(value => value.sample_values.slice(0, 10));
-    otu_ids = sample_data.map(otu_id => otu_id.otu_ids.slice(0, 10));
-    otu_labels = sample_data.map(otu_label => otu_label.otu_labels.slice(0, 10));
+    sample_values = sample_data.map(sample => sample.sample_values);
+    otu_ids = sample_data.map(otu_id => otu_id.otu_ids);
+    otu_labels = sample_data.map(otu_label => otu_label.otu_labels);
     let id940_values = sample_data[0].sample_values;
     let id940_ids = sample_data[0].otu_ids;
     let id940_hover = sample_data[0].otu_labels;
@@ -98,16 +97,16 @@ function optionChanged() {
     for (let i = 0; i < ids.length; i++) {
         if (dataset == ids[i]) {
             let y_data = [];
-            y_data = otu_ids[i].map(otu_id => {
+            y_data = otu_ids[i].slice(0,10).map(otu_id => {
                 return 'OTU ' + otu_id});
-            let x_data = sample_values[i]
+            let x_data = sample_values[i].slice(0, 10);
             let barplot_data = [];
             barplot_data = [{
                 x: x_data,
                 y: y_data,
                 type: "bar",
                 orientation: "h",
-                text: otu_labels[i],
+                text: otu_labels[i].slice(0,10),
                 transforms: [{
                     type: 'sort',
                     target: 'y',
@@ -116,12 +115,36 @@ function optionChanged() {
                 }];
                 updatePlotly(barplot_data);
 
-                let y_data_bubble = [];
+                bubbleplot_data = [{
+                    x: otu_ids[i],
+                    y: sample_values[i],
+                    mode: 'markers',
+                    text: otu_labels[i],
+                    marker: {
+                        color: otu_ids[i],
+                        size: sample_values[i]
+                }
+                    }];
+
+                updatePlotly(bubbleplot_data);
                 
+                
+                if (dataset == ids[i]) { 
+                    let row = document.querySelector("tr");
+                    row.innerHTML = " ";
+                    updateMetadata(row);
+
+                    // let sample_metadata = data.metadata;
+                    // let entries = Object.entries(sample_metadata[i]); 
+                    // let pleasework = []
+                    // for ([key, value] of entries) {
+                    //     pleasework.push(`${key}: ${value}`);
+                    //     row.innerHTML = pleasework;
+                    //     };
+                    }}
             }
-                //console.log(barplot_data)
+            
         };
-         };
 
 function updatePlotly(newdata) {
     for (let i = 0; i < ids.length; i++) {
@@ -129,26 +152,83 @@ function updatePlotly(newdata) {
         let dataset = dropdownMenu.property("value");
         if (dataset == ids[i]) {
             let y_data = [];
-            y_data = otu_ids[i].map(otu_id => {
+            y_data = otu_ids[i].slice(0,10).map(otu_id => {
                 return 'OTU ' + otu_id});
             let new_plot = [{
-                x: sample_values[i],
+                x: sample_values[i].slice(0,10),
                 y: y_data,
         type: "bar",
         orientation: "h",
-        text: otu_labels[i],
+        text: otu_labels[i].slice(0,10),
         transforms: [{
             type: 'sort',
             target: 'y',
             order: 'descending'
           }]
     }];
-    let layout = {
+    let layout_bar = {
         height: 600,
         width: 800
     };
-    Plotly.newPlot("bar", new_plot, layout);
-        }
-    }
-    };
+    Plotly.newPlot("bar", new_plot, layout_bar);
 
+    let bubble_plot = [{
+        x: otu_ids[i],
+        y: sample_values[i],
+        mode: 'markers',
+        text: otu_labels[i],
+        marker: {
+            color: otu_ids[i],
+            size: sample_values[i]
+    }}];
+
+    let layout_bubble = {
+        height: 600,
+        width: 1000
+};
+
+Plotly.newPlot("bubble", bubble_plot, layout_bubble);
+        }
+
+
+// if (dataset == ids[i]) { 
+//         let row = document.querySelector("tr");
+//         row.innerHTML = " ";
+//         updateMetadata(row);
+        
+        // let sample_metadata = data.metadata;
+        // let entries = Object.entries(sample_metadata[i]); 
+        // let pleasework = []
+        // for ([key, value] of entries) {
+        //     pleasework.push(`${key}: ${value}`);
+        //     row.innerHTML = pleasework;
+        //     };
+        }}
+    //     result.textContent = `info: ${event.target.value}`;
+    //   });
+//     d3.json(url).then(data => {
+// let row = document.querySelector(".panel-body");
+// let sample_metadata = data.metadata;
+// let entries = Object.entries(sample_metadata[i]); 
+// console.log(entries)
+// for ([key, value] of entries) {
+//         row.textContent = `${key}: ${value}\n`;
+//     };
+    
+// })
+
+function updateMetadata(meta) {
+    let entries = []
+    for (let i = 0; i < ids.length; i++) {
+        let dropdownMenu = d3.select("#selDataset");
+        let dataset = dropdownMenu.property("value");
+        if (dataset == ids[i]) {
+            d3.json(url).then(data => {
+                let row = d3.select('tr');
+    let sample_metadata = data.metadata;
+    entries = Object.entries(sample_metadata[i]);
+    for ([key, value] of entries) {
+        row.append('tr').text(`${key}: ${value}\n`);
+     };
+    })}}
+}
