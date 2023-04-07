@@ -1,16 +1,22 @@
-// 
+// Defining URL
 const url = "https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json"
 
 // Promise Pending
 const dataPromise = d3.json(url);
 console.log("Data Promise: ", dataPromise);
 
+// Creating empty arrays that will be filled with the appropriate data
 let sample_data, sample_values, otu_ids, otu_labels, ids = [];
-// Fetch the JSON data and console log it
+
+// Fetching the JSON data and console logging it
 d3.json(url).then(data => {
     console.log(data);
+    
+    //Extracting sample data and ids
     sample_data = data.samples;
     ids = data.names;
+
+    // Mapping out data into arrays
     sample_values = sample_data.map(sample => sample.sample_values);
     otu_ids = sample_data.map(otu_id => otu_id.otu_ids);
     otu_labels = sample_data.map(otu_label => otu_label.otu_labels);
@@ -18,6 +24,7 @@ d3.json(url).then(data => {
     let id940_ids = sample_data[0].otu_ids;
     let id940_hover = sample_data[0].otu_labels;
 
+    // Creating function that will display the default bar graph
     function init() {
         let barplot_data = [{
             x: id940_values.slice(0, 10),
@@ -42,6 +49,7 @@ d3.json(url).then(data => {
 
     };
 
+    // Creating function that will display the default bubble plot
     function init2() {
         let bubble_plot = [{
             x: id940_ids,
@@ -62,6 +70,7 @@ d3.json(url).then(data => {
 
     };
 
+    // Creating function that will display the default meta data
     function init3() {
     let metadata = d3.select('#sample-metadata');
     let panel_body = metadata.append('panel-body');
@@ -74,6 +83,7 @@ d3.json(url).then(data => {
      };
     };
 
+    // Creating each option for the dropdown menu
     const selectElement = document.getElementById("selDataset");
     for (let i = 0; i < ids.length; i++) {
       const optionElement = document.createElement("option");
@@ -86,8 +96,10 @@ d3.json(url).then(data => {
     init3();
 });
 
+// // On change to the DOM, calling the optionChanged() function
 d3.selectAll("onchange").on("change", optionChanged);
 
+// Defining the optionChanged() function
 function optionChanged() {
     let dropdownMenu = d3.select("#selDataset");
     // Assign the value of the dropdown menu option to a variable
@@ -113,6 +125,8 @@ function optionChanged() {
                     order: 'descending'
                   }]
                 }];
+
+                // Calling function to update the chart
                 updatePlotly(barplot_data);
 
                 bubbleplot_data = [{
@@ -126,6 +140,7 @@ function optionChanged() {
                 }
                     }];
 
+                // Calling function to update the chart
                 updatePlotly(bubbleplot_data);
                 
                 
@@ -133,24 +148,19 @@ function optionChanged() {
                     let row = document.querySelector("tr");
                     row.innerHTML = " ";
                     updateMetadata(row);
-
-                    // let sample_metadata = data.metadata;
-                    // let entries = Object.entries(sample_metadata[i]); 
-                    // let pleasework = []
-                    // for ([key, value] of entries) {
-                    //     pleasework.push(`${key}: ${value}`);
-                    //     row.innerHTML = pleasework;
-                    //     };
                     }}
             }
             
         };
 
+// Defining the updatePlotly function to update the plots everytime a different sample is selected
 function updatePlotly(newdata) {
     for (let i = 0; i < ids.length; i++) {
         let dropdownMenu = d3.select("#selDataset");
         let dataset = dropdownMenu.property("value");
         if (dataset == ids[i]) {
+
+            // This part updates the bar plot
             let y_data = [];
             y_data = otu_ids[i].slice(0,10).map(otu_id => {
                 return 'OTU ' + otu_id});
@@ -172,6 +182,7 @@ function updatePlotly(newdata) {
     };
     Plotly.newPlot("bar", new_plot, layout_bar);
 
+    // This part updates the bubble plot
     let bubble_plot = [{
         x: otu_ids[i],
         y: sample_values[i],
@@ -190,33 +201,9 @@ function updatePlotly(newdata) {
 Plotly.newPlot("bubble", bubble_plot, layout_bubble);
         }
 
-
-// if (dataset == ids[i]) { 
-//         let row = document.querySelector("tr");
-//         row.innerHTML = " ";
-//         updateMetadata(row);
-        
-        // let sample_metadata = data.metadata;
-        // let entries = Object.entries(sample_metadata[i]); 
-        // let pleasework = []
-        // for ([key, value] of entries) {
-        //     pleasework.push(`${key}: ${value}`);
-        //     row.innerHTML = pleasework;
-        //     };
         }}
-    //     result.textContent = `info: ${event.target.value}`;
-    //   });
-//     d3.json(url).then(data => {
-// let row = document.querySelector(".panel-body");
-// let sample_metadata = data.metadata;
-// let entries = Object.entries(sample_metadata[i]); 
-// console.log(entries)
-// for ([key, value] of entries) {
-//         row.textContent = `${key}: ${value}\n`;
-//     };
-    
-// })
 
+// Creating function to update the metadata when a new sample is selected from the dropdown menu
 function updateMetadata(meta) {
     let entries = []
     for (let i = 0; i < ids.length; i++) {
